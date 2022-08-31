@@ -1,12 +1,7 @@
 const puppeteer = require("puppeteer")
 const pg = require("pg")
-const config = {
-    host: 'localhost',
-    user: 'postgres',
-    port: 5432,
-    password: '0000',
-    database: 'Persons'
-}
+const bd_connect = require('./bd.json')
+const config = bd_connect
 
 const client = new pg.Client(config)
 client.connect(err => {
@@ -103,6 +98,20 @@ class Persons {
             catch { }
         }
 
+        try {
+            if (m_date_of_birth != null) {
+                let arr_d_b = m_date_of_birth.split('.')
+                m_date_of_birth = arr_d_b[1] + '.' + arr_d_b[0] + '.' + arr_d_b[2]
+            }
+        }
+        catch { }
+        try {
+            if (m_date_of_dismissal != null) {
+                let arr_d_d = m_date_of_dismissal.split('.')
+                m_date_of_dismissal = arr_d_d[1] + '.' + arr_d_d[0] + '.' + arr_d_d[2]
+            }
+        }
+        catch { }
         m_category != undefined ? this.category = m_category : this.category = null;
         m_date_of_dismissal != undefined ? this.date_of_dismissal = m_date_of_dismissal : this.date_of_dismissal = null;
         m_date_of_birth != undefined ? this.date_of_birth = m_date_of_birth : this.date_of_birth = null;
@@ -113,7 +122,6 @@ class Persons {
         m_sitizenship != undefined ? this.sitizenship = m_sitizenship : this.sitizenship = null;
         m_last_post != undefined ? this.last_post = m_last_post : this.last_post = null;
         m_reg_bus != undefined ? this.reg_bus = m_reg_bus : this.reg_bus = null;
-
         const tetx_main_check = 'Select * from "Persons" where id = $1'
         const values_main_check = [this.id]
         try {
@@ -246,7 +254,7 @@ class Persons {
                 let leng = document.getElementById("element").getElementsByTagName('li').length;
                 return leng;
             });
-            let browser_org = await puppeteer.launch()
+            let browser_org = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] })
             let page_org = await browser_org.newPage()
             for (let i = 1; i < li_count_career + 1; i++) {
                 let dates = await page_pers.$eval(`#element > ul > li:nth-child(${i}) > div.tl-wrap > span`, (el) => el.innerText)
@@ -254,10 +262,28 @@ class Persons {
                 dates = dates.filter(function (el) { return el != '' })
                 let date_start, date_end, organization, organization_href, post
                 dates.forEach(function (element_c) {
-                    if (String(element_c).includes('от'))
+                    if (String(element_c).includes('от')) {
+                        element_c = element_c.substring(2)
+                        element_c = element_c.trim()
+                        let arr_d = element_c.split('.')
+                        switch (arr_d.length) {
+                            case (1): element_c = "01.01." + element_c; break;
+                            case (2): element_c = arr_d[0] + '.' + "01." + arr_d[1]; break;
+                            default: element_c = arr_d[1] + '.' + arr_d[0] + '.' + arr_d[2]; break;
+                        }
                         date_start = element_c
-                    else if (String(element_c).includes('до'))
+                    }
+                    else if (String(element_c).includes('до')) {
+                        element_c = element_c.substring(2)
+                        element_c = element_c.trim()
+                        let arr_d = element_c.split('.')
+                        switch (arr_d.length) {
+                            case (1): element_c = "01.01." + element_c; break;
+                            case (2): element_c = arr_d[0] + '.' + "01." + arr_d[1]; break;
+                            default: element_c = arr_d[1] + '.' + arr_d[0] + '.' + arr_d[2]; break;
+                        }
                         date_end = element_c
+                    }
                     else {
                         date_end = null
                         date_start = null
@@ -379,7 +405,7 @@ class Persons {
 
             if (array_declare.length != 0) {
                 for (let i = 0; i < array_declare.length; i++) {
-                    const text_dec_check = 'Select * from "Declaration" where id_person = $1 and yaer = $2'
+                    const text_dec_check = 'Select * from "Declaration" where id_person = $1 and year = $2'
                     const values_dec_check = [this.id, this.declaration[i].d_year]
                     try {
                         await client.query(text_dec_check, values_dec_check, async (err, res) => {
@@ -387,7 +413,7 @@ class Persons {
                                 console.log(err.stack)
                             } else {
                                 if (res.rowCount == 0) {
-                                    const text_dec = 'INSERT INTO "Declaration"(id_person, yaer, post, realty, transport, income, spouse_income) VALUES ($1, $2, $3, $4, $5, $6, $7);'
+                                    const text_dec = 'INSERT INTO "Declaration"(id_person, year, post, realty, transport, income, spouse_income) VALUES ($1, $2, $3, $4, $5, $6, $7);'
                                     const values_dec = [this.id, this.declaration[i].d_year, this.declaration[i].d_post, this.declaration[i].d_realty, this.declaration[i].d_transport, this.declaration[i].d_income, this.declaration[i].d_spouce_income]
                                     try {
                                         await client.query(text_dec, values_dec);
@@ -396,7 +422,7 @@ class Persons {
 
                                 }
                                 else {
-                                    const tetx_dec_upd = 'Update "Declaration" set id_person=$1, yaer=$2, post=$3, realty=$4, transport=$5, income=$6, spouse_income=$7 where id_person = $1 and yaer = $2'
+                                    const tetx_dec_upd = 'Update "Declaration" set id_person=$1, year=$2, post=$3, realty=$4, transport=$5, income=$6, spouse_income=$7 where id_person = $1 and yaer = $2'
                                     const values_dec_upd = [this.id, this.declaration[i].d_year, this.declaration[i].d_post, this.declaration[i].d_realty, this.declaration[i].d_transport, this.declaration[i].d_income, this.declaration[i].d_spouce_income]
                                     try {
                                         await client.query(tetx_dec_upd, values_dec_upd);
@@ -416,7 +442,7 @@ class Persons {
 
     async pers_communication(page_pers, id) {
         try {
-            let browser_orgs = await puppeteer.launch()
+            let browser_orgs = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] })
             let page_org = await browser_orgs.newPage()
             await page_pers.waitForSelector(`#connections`)
             let array_comm = []
@@ -481,9 +507,6 @@ class Persons {
                             let kin, status_relative
                             try {
                                 status_relative = await page_pers.$eval(`#connections > div > div > ul > li > ul > li:nth-child(${i}) > ul > li:nth-child(${j})`, (el) => el.innerText);
-
-                                //arr_comp = await page_pers.$$eval(`#connections > div > div > ul > li > ul > li:nth-child(${i}) > ul > li:nth-child(${j}) > a`, (el) => el.map(elem => elem.innerText))
-
                                 status_relative = status_relative.replace(/\n/g, "")
                                 let stat_name = status_relative.indexOf(fullname) + fullname.length
                                 status_relative = status_relative.substring(stat_name)
@@ -498,7 +521,7 @@ class Persons {
                             else if (li_type.includes('Деловые связи')) { type = 'Деловая связь'; status_relative = null }
                             let communication = {
                                 id_pers: Number(id),
-                                id_communication: id_com != undefined && id_com != "" ? Number(id_com) : j,
+                                id_communication: id_com != undefined && id_com != "" ? Number(id_com) : String(i) + String(j),
                                 full_name: fullname,
                                 citizenship: citiz_relative,
                                 type_communication: type,
@@ -557,7 +580,7 @@ class Persons {
 
     async pers_entity(page_pers, id_pers) {
         try {
-            let browser_ent = await puppeteer.launch()
+            let browser_ent = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] })
             let page_org = await browser_ent.newPage()
             await page_pers.waitForSelector(`#related-companies`)
             let array_entity = []
@@ -568,10 +591,28 @@ class Persons {
                 dates = dates.filter(function (el) { return el != '' })
                 let date_start, date_end, organization, organization_href, post, inn, ogrn, fraction, country
                 dates.forEach(function (element_c) {
-                    if (String(element_c).includes('от'))
+                    if (String(element_c).includes('от')) {
+                        element_c = element_c.substring(2)
+                        element_c = element_c.trim()
+                        let arr_d = element_c.split('.')
+                        switch (arr_d.length) {
+                            case (1): element_c = "01.01." + element_c; break;
+                            case (2): element_c = arr_d[0] + '.' + "01." + arr_d[1]; break;
+                            default: element_c = arr_d[1] + '.' + arr_d[0] + '.' + arr_d[2]; break;
+                        }
                         date_start = element_c
-                    else if (String(element_c).includes('до'))
+                    }
+                    else if (String(element_c).includes('до')) {
+                        element_c = element_c.substring(2)
+                        element_c = element_c.trim()
+                        let arr_d = element_c.split('.')
+                        switch (arr_d.length) {
+                            case (1): element_c = "01.01." + element_c; break;
+                            case (2): element_c = arr_d[0] + '.' + "01." + arr_d[1]; break;
+                            default: element_c = arr_d[1] + '.' + arr_d[0] + '.' + arr_d[2]; break;
+                        }
                         date_end = element_c
+                    }
                     else {
                         date_end = null
                         date_start = null
@@ -718,17 +759,19 @@ class Persons {
 }
 
 async function pars_href() {
-    const browser = await puppeteer.launch()
+    const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] })
     const page_pars = await browser.newPage()
     await page_pars.goto('https://rupep.org/ru/persons_list/', { timeout: 0 })
     let array = []
     await page_pars.waitForSelector(`#search-results > table`)
     let rows_count = await page_pars.$$eval(`#search-results > table > tbody > tr`, (el) => el.length)
-    console.log(rows_count)
-    for (let i = 1; i < rows_count+1;  i++){
-        await page_pars.waitForSelector(`#search-results > table > tbody > tr:nth-child(${i})`)
-        let href = await page_pars.$eval(`#search-results > table > tbody > tr:nth-child(${i}) > td:nth-child(1) > a`, (el) => el.href)
-        array.push(href)
+    for (let i = 1; i < rows_count + 1; i++) {
+        try {
+            await page_pars.waitForSelector(`#search-results > table > tbody > tr:nth-child(${i})`)
+            let href = await page_pars.$eval(`#search-results > table > tbody > tr:nth-child(${i}) > td:nth-child(1) > a`, (el) => el.href)
+            array.push(href)
+        }
+        catch { }
     }
     await browser.close()
     return array
@@ -738,7 +781,7 @@ process.on('warning', e => console.warn(e.stack));
 async function pars() {
     let array_hrefs = []
     array_hrefs = await pars_href()
-    const browser = await puppeteer.launch()
+    const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] })
     const page = await browser.newPage()
     let counter = 0
     while (counter < array_hrefs.length) {
@@ -762,7 +805,7 @@ async function pars() {
                 case ('declarations'): await person.pers_declare(page); flag++; break;
                 case ('connections'): await person.pers_communication(page, id); flag++; break;
                 case ('related-companies'): await person.pers_entity(page, id); flag++; break;
-                default: console.log('Неизвестный раздел'); ness++; break;
+                default: ness++; break;
             }
             if (flag == arr_div.length - ness) { counter++; console.log('Обработано: ' + counter + " из: " + array_hrefs.length); }
         }
