@@ -776,8 +776,8 @@ async function pars_href() {
     await page_pars.goto('https://rupep.org/ru/persons_list/', { timeout: 0 })
     let array = []
     await page_pars.waitForSelector(`#search-results > table`)
-    //let rows_count = await page_pars.$$eval(`#search-results > table > tbody > tr`, (el) => el.length)
-    for (let i = 5; i < 7; i++) {
+    let rows_count = await page_pars.$$eval(`#search-results > table > tbody > tr`, (el) => el.length)
+    for (let i = 1; i < rows_count +1 ; i++) {
         try {
             await page_pars.waitForSelector(`#search-results > table > tbody > tr:nth-child(${i})`)
             let href = await page_pars.$eval(`#search-results > table > tbody > tr:nth-child(${i}) > td:nth-child(1) > a`, (el) => el.href)
