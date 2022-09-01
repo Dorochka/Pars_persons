@@ -106,30 +106,33 @@ class Persons {
         try {
             if (m_date_of_birth != null) {
                 let arr_d_b = m_date_of_birth.split('.')
-                m_date_of_birth = arr_d_b[1] + '.' + arr_d_b[0] + '.' + arr_d_b[2]
+                switch (arr_d_b.length) {
+                    case (1): m_date_of_birth = "01.01." + m_date_of_birth; break;
+                    case (2): m_date_of_birth = arr_d_b[0] + '.' + "01." + arr_d_b[1]; break;
+                    default: m_date_of_birth = arr_d_b[1] + '.' + arr_d_b[0] + '.' + arr_d_b[2]; break;
+                }
             }
         }
         catch { }
         try {
             if (m_date_of_dismissal != null) {
                 let arr_d_d = m_date_of_dismissal.split('.')
-                m_date_of_dismissal = arr_d_d[1] + '.' + arr_d_d[0] + '.' + arr_d_d[2]
+                switch (arr_d_d.length) {
+                    case (1): m_date_of_dismissal = "01.01." + m_date_of_dismissal; break;
+                    case (2): m_date_of_dismissal = arr_d_d[0] + '.' + "01." + arr_d_d[1]; break;
+                    default: m_date_of_dismissal = arr_d_d[1] + '.' + arr_d_d[0] + '.' + arr_d_d[2]; break;
+                }
             }
         }
         catch { }
-        try {
-            if (m_INN != null) {
-                let arr_inn = m_INN.split(',')
-                m_INN = arr_inn[0]
-            }
-        }
-        catch { }
+        if (m_INN != undefined && m_INN != null) if (m_INN.length>12) m_INN = m_INN.substring(0, 12)
+
         m_category != undefined ? this.category = m_category : this.category = null;
         m_date_of_dismissal != undefined ? this.date_of_dismissal = m_date_of_dismissal : this.date_of_dismissal = null;
         m_date_of_birth != undefined ? this.date_of_birth = m_date_of_birth : this.date_of_birth = null;
         m_other_names != undefined ? this.other_names = m_other_names : this.other_names = null;
         m_under_sanction != undefined ? this.under_sanction = m_under_sanction : this.under_sanction = null;
-        m_INN != undefined ? this.INN = Number(m_INN) : this.INN = null;
+        m_INN != undefined ? this.INN = BigInt(m_INN) : this.INN = null;
         m_place_birth != undefined ? this.place_birth = m_place_birth : this.place_birth = null;
         m_sitizenship != undefined ? this.sitizenship = m_sitizenship : this.sitizenship = null;
         m_last_post != undefined ? this.last_post = m_last_post : this.last_post = null;
@@ -434,7 +437,7 @@ class Persons {
 
                                 }
                                 else {
-                                    const tetx_dec_upd = 'Update "Declaration" set id_person=$1, year=$2, post=$3, realty=$4, transport=$5, income=$6, spouse_income=$7 where id_person = $1 and yaer = $2'
+                                    const tetx_dec_upd = 'Update "Declaration" set id_person=$1, year=$2, post=$3, realty=$4, transport=$5, income=$6, spouse_income=$7 where id_person = $1 and year = $2'
                                     const values_dec_upd = [this.id, this.declaration[i].d_year, this.declaration[i].d_post, this.declaration[i].d_realty, this.declaration[i].d_transport, this.declaration[i].d_income, this.declaration[i].d_spouce_income]
                                     try {
                                         await client.query(tetx_dec_upd, values_dec_upd);
