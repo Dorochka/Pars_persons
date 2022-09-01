@@ -4,9 +4,14 @@ const bd_connect = require('./bd.json')
 const config = bd_connect
 
 const client = new pg.Client(config)
-client.connect(err => {
+client.connect(async (err) => {
     if (err) console.log(err);
     else {
+        let text_path = 'SET search_path TO rupep; SET datestyle = "ISO, MDY"'
+        try {
+            await client.query(text_path);
+        }
+        catch (err) { console.log(err.stack) }
         console.log("All is OK");
     }
 });
@@ -109,6 +114,13 @@ class Persons {
             if (m_date_of_dismissal != null) {
                 let arr_d_d = m_date_of_dismissal.split('.')
                 m_date_of_dismissal = arr_d_d[1] + '.' + arr_d_d[0] + '.' + arr_d_d[2]
+            }
+        }
+        catch { }
+        try {
+            if (m_INN != null) {
+                let arr_inn = m_INN.split(',')
+                m_INN = arr_inn[0]
             }
         }
         catch { }
@@ -764,8 +776,8 @@ async function pars_href() {
     await page_pars.goto('https://rupep.org/ru/persons_list/', { timeout: 0 })
     let array = []
     await page_pars.waitForSelector(`#search-results > table`)
-    let rows_count = await page_pars.$$eval(`#search-results > table > tbody > tr`, (el) => el.length)
-    for (let i = 1; i < rows_count + 1; i++) {
+    //let rows_count = await page_pars.$$eval(`#search-results > table > tbody > tr`, (el) => el.length)
+    for (let i = 5; i < 7; i++) {
         try {
             await page_pars.waitForSelector(`#search-results > table > tbody > tr:nth-child(${i})`)
             let href = await page_pars.$eval(`#search-results > table > tbody > tr:nth-child(${i}) > td:nth-child(1) > a`, (el) => el.href)
