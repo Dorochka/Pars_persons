@@ -67,7 +67,7 @@ ALTER TABLE rupep."Communication" OWNER TO postgres;
 
 CREATE TABLE rupep."Declaration" (
     id_person integer NOT NULL,
-    yaer smallint NOT NULL,
+    year smallint NOT NULL,
     post character varying(255),
     realty text,
     transport text,
@@ -188,7 +188,7 @@ ALTER TABLE ONLY rupep."Communication"
 --
 
 ALTER TABLE ONLY rupep."Declaration"
-    ADD CONSTRAINT "Declaration_pkey" PRIMARY KEY (id_person, yaer);
+    ADD CONSTRAINT "Declaration_pkey" PRIMARY KEY (id_person, year);
 
 
 --
@@ -304,4 +304,3 @@ ALTER TABLE ONLY rupep."Dossier"
 --
 -- PostgreSQL database dump complete
 --
-
