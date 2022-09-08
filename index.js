@@ -244,7 +244,7 @@ class Persons {
                                 }
                                 else {
                                     const tetx_dos_upd = 'Update "Dossier" set id_person = $1, source = $2, information=$3 where id_person = $1 and source = $2'
-                                    const values_dos_upd = [this.id, this.websites[i].href_site, this.websites[i].site_name]
+                                    const values_dos_upd = [this.id, this.dossier[i].dossier_href, this.dossier[i].dossier_sourse]
                                     try {
                                         await client.query(tetx_dos_upd, values_dos_upd);
                                     }
